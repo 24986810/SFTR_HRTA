@@ -1,0 +1,17 @@
+#Mon Apr 15 16:39:17 CST 2019
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrhi/client=modules/hrhi/client/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrhi/private=modules/hrhi/META-INF/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrhi/public=modules/hrhi/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrppub/client=modules/hrppub/client/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrtrn/client=modules/hrtrn/client/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrwa/client=modules/hrwa/client/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrwa/private=modules/hrwa/META-INF/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/hrwa/public=modules/hrwa/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/resources=resources/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/src/client=modules/hrta/client/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/src/private=modules/hrta/META-INF/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/src/public=modules/hrta/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/src/test=
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/uap/private=modules/uap/META-INF/classes/
+NCPatchPropertyStore.SOURCE_DEST_LOCATION_KEY///SFTR_HRTA/uap/public=modules/uap/classes/
+eclipse.preferences.version=1
