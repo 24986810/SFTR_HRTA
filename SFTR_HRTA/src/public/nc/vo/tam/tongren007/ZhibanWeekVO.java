@@ -12,6 +12,7 @@ import nc.vo.pub.lang.UFDateTime;
  */
 public class ZhibanWeekVO extends SuperVO {
 
+	
 	/**
 	 * 
 	 */
