@@ -1,4 +1,5 @@
-## 班别权限增加明细班别
+## 20190911
+班别权限增加明细班别
 ## 相关类
 UserClassTypeBVO
 BasePowerDLG
