@@ -8,6 +8,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.hr.ta.IBclbDefining;
 import nc.itf.hrp.pub.IConstant;
 import nc.ui.pub.beans.MessageDialog;
+import nc.ui.pub.beans.UIDialog;
 import nc.ui.trade.base.IBillOperate;
 import nc.ui.trade.bill.ICardController;
 import nc.ui.trade.pub.TableTreeNode;
@@ -110,5 +111,59 @@ public class ClientEH extends TreeCardEventHandler {
 		irewrite.setClassRoleOrUserAtdClassTypeAuth(tempid,list,vflag,pk_module,_getCorp().getPrimaryKey(),0);
 		getBillUI().setBillOperate(IBillOperate.OP_NOTEDIT);
 		
+	}
+
+	@Override
+	protected void onBoCopy() throws Exception {
+		// TODO Auto-generated method stub
+//		super.onBoCopy();
+		TreePath[] tpths = ((ClientUI)getBillUI()).getTpths();
+		
+		if(tpths == null){
+			MessageDialog.showHintDlg(this.getBillTreeCardUI(),"提示","请选择权限分配用户！");
+			return;
+		}
+		
+		TableTreeNode node = (TableTreeNode)tpths[0].getLastPathComponent();
+		String tempid = node.getNodeID().toString();
+		String btt = "";
+		
+		if(tempid.equals("")){
+			MessageDialog.showHintDlg(this.getBillTreeCardUI(),"提示","请选择权限分配用户！");
+			return;
+		}
+		
+		int cnt = getBillCardPanelWrapper().getBillCardPanel().getRowCount();
+		ArrayList<UserClassTypeVO> list = new ArrayList<UserClassTypeVO>();
+		
+		for(int i = 0 ; i < cnt ; i++){
+			Object temp = getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "flag"); 
+			if(temp != null && temp.toString().equals("true")){
+				btt = getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "pk_hrp_classtype").toString();
+				UserClassTypeVO ucavo = new UserClassTypeVO();
+				ucavo.setPk_docid(btt);
+				ucavo.setPowertype(0);
+				
+				list.add(ucavo);
+			}
+		}
+		
+		if(list.size() < 1){
+			MessageDialog.showHintDlg(this.getBillTreeCardUI(),"提示","请选择用户权限分配类型！");
+			return;
+		}else if(list.size() > 1){
+			MessageDialog.showHintDlg(this.getBillTreeCardUI(),"提示","只能分配一个权限！");
+			return;
+		}else{
+			// 弹框
+			getBasePowerDLG(tempid,btt).showModal();
+		}
+		
+	}
+	
+	private BasePowerDLG m_baseDlg = null;
+	private BasePowerDLG getBasePowerDLG(String pk_user,String pk_hrp_classtype){
+		m_baseDlg = new BasePowerDLG(this.getBillUI(),pk_user,pk_hrp_classtype);
+		return m_baseDlg;
 	}
 }

@@ -162,6 +162,7 @@ public class Ctrl  implements ITreeCardController  {
 				IBillButton.Edit,
 				IBillButton.Save,
 				IBillButton.Cancel,
+				IBillButton.Copy
 				
 		};
 	}
