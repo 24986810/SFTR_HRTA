@@ -15,6 +15,11 @@ public class ExcelPsnVO {
      String panname2 = "";
      String appointmentheld = "";
      
+     //考情月份（拆分）
+     String monthStr = ""; 
+     //月数（拆分）
+     String monthNum = "";
+     
      int samecount =0;
      int beginindex =0;
      int endindex =0;
@@ -112,6 +117,18 @@ public class ExcelPsnVO {
 	}
 	public void setWorkingage(String workingage) {
 		this.workingage = workingage;
+	}
+	public String getMonthNum() {
+		return monthNum;
+	}
+	public void setMonthNum(String monthNum) {
+		this.monthNum = monthNum;
+	}
+	public String getMonthStr() {
+		return monthStr;
+	}
+	public void setMonthStr(String monthStr) {
+		this.monthStr = monthStr;
 	}
      
      

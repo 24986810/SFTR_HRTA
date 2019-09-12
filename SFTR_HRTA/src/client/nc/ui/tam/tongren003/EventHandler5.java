@@ -166,21 +166,30 @@ public class EventHandler5 extends CardEventHandler {
 			for(UserClassTypeVO classtypevo:kqclasstypevos){
 				if(classtypevo.getPk_docid().equals("1")){// 医务
 					operatetype = "YW";
-								
+					sqlwhere =" and pk_bclbid in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+					sqlwhere2 = " and pk_bb in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+			
 				}else if(classtypevo.getPk_docid().equals("2")){//门办
 					operatetype="MB";
-					sqlwhere = " and pk_bclbid in (select pk_bclbid from trtam_filter_bclb where (lbmc not like '%肠道门诊%' or lbmc not like '%发热门诊%'))";
-					sqlwhere2 = " and pk_bb in (select pk_bclbid from trtam_filter_bclb where (lbmc not like '%肠道门诊%' or lbmc not like '%发热门诊%'))";
+//					sqlwhere = " and pk_bclbid in (select pk_bclbid from trtam_filter_bclb where (lbmc not like '%肠道门诊%' or lbmc not like '%发热门诊%'))";
+//					sqlwhere2 = " and pk_bb in (select pk_bclbid from trtam_filter_bclb where (lbmc not like '%肠道门诊%' or lbmc not like '%发热门诊%'))";
+					sqlwhere =" and pk_bclbid in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+					sqlwhere2 = " and pk_bb in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
 
 				}else if(classtypevo.getPk_docid().equals("3")){// 护理
 					operatetype="HL";
-					sqlwhere = "  and pk_bclbid  in (select pk_bclbid from tbm_bclb where (lbbm  like '20%' or lbbm  like '99%')  and dr =0)  ";
-					sqlwhere2 = " and pk_bb  in (select pk_bclbid from tbm_bclb where (lbbm  like '20%' or lbbm  like '99%')  and dr =0)  ";
+//					sqlwhere = "  and pk_bclbid  in (select pk_bclbid from tbm_bclb where (lbbm  like '20%' or lbbm  like '99%')  and dr =0)  ";
+//					sqlwhere2 = " and pk_bb  in (select pk_bclbid from tbm_bclb where (lbbm  like '20%' or lbbm  like '99%')  and dr =0)  ";
+					sqlwhere =" and pk_bclbid in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+					sqlwhere2 = " and pk_bb in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
 
 				}else if(classtypevo.getPk_docid().equals("4")){// 其他
 					operatetype="QT";
-					sqlwhere = "  and pk_bclbid in (select pk_bclbid from tbm_bclb where (lbbm  like '50%' or lbbm  like '99%' or lbbm  like '30%')  and dr =0)  ";
-					sqlwhere2 = " and pk_bb in (select pk_bclbid from tbm_bclb where (lbbm  like '50%' or lbbm  like '99%' or lbbm  like '30%')  and dr =0)  ";
+//					sqlwhere = "  and pk_bclbid in (select pk_bclbid from tbm_bclb where (lbbm  like '50%' or lbbm  like '99%' or lbbm  like '30%')  and dr =0)  ";
+//					sqlwhere2 = " and pk_bb in (select pk_bclbid from tbm_bclb where (lbbm  like '50%' or lbbm  like '99%' or lbbm  like '30%')  and dr =0)  ";
+					sqlwhere =" and pk_bclbid in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+					sqlwhere2 = " and pk_bb in (select pk_bclbid from TRTAM_CLASSTYPE_KQ_B where pk_user ='"+_getOperator()+"' and pk_hrp_classtype='"+classtypevo.getPk_docid()+"' and dr=0)";
+
 				}
 				
 			}
@@ -330,7 +339,7 @@ public class EventHandler5 extends CardEventHandler {
 					weekvo.setNgxs(map.get(weekvo.getPk_psndoc()));
 					weekvo.setNsygxs(map.get(weekvo.getPk_psndoc()));
 					
-					if("MB".equals(operatetype) || "HL".equals(operatetype) ||"QT".equals(operatetype)){
+					if("MB".equals(operatetype) || "HL".equals(operatetype) ||"QT".equals(operatetype)||"YW".equals(operatetype)){
 						for(int i=1;i<days;i++){
 							String pk_bb = (String)weekvo.getAttributeValue("pk_bb"+i);
 							if(pk_bb != null){

@@ -1237,7 +1237,7 @@ public class EventHandler extends CardEventHandler {
 			// 保存时判断公休是否为<0,则不能保存
 			for(int i=0;i<vos.length;i++){
 			PaibanWeekVO paibanweekvo = vos[i];
-			UFDouble nsygxs = new UFDouble("0.00");
+			/*UFDouble nsygxs = new UFDouble("0.00");
 			String pk_vbb = "10028L100000000002D8";// 公休PK
 			for(int j=1;j<8;j++){
 				String pk_bbs = paibanweekvo.getAttributeValue("pk_bb"+j) != null ? paibanweekvo.getAttributeValue("pk_bb"+j).toString().trim():null;
@@ -1245,10 +1245,10 @@ public class EventHandler extends CardEventHandler {
 					nsygxs=nsygxs.add(new UFDouble("1.00"));
 				}
 				
-			}
+			}*/
 			
 			if(paibanweekvo.getNsygxs() != null){
-				if(paibanweekvo.getNsygxs().compareTo(nsygxs) == -1){
+				if(paibanweekvo.getNsygxs().compareTo(new UFDouble(0.0)) == -1){
 					String psnname = (String) getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "psnname");
 					errorMsg.append("第 "+ (i+1) +"行,"+psnname+"公休数小于0！\n");
 					continue;

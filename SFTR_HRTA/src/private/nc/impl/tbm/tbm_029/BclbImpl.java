@@ -41,6 +41,7 @@ import nc.vo.tam.tongren.power.UserClassDeptVO;
 import nc.vo.tam.tongren.power.UserClassTypeVO;
 import nc.vo.tam.tongren.power.UserDeptVO;
 import nc.vo.tam.tongren001.DeptKqBVO;
+import nc.vo.tam.tongren001.DeptKqVO;
 import nc.vo.tam.tongren003.PanbanWeekBVO;
 import nc.vo.tam.tongren008.ApplyBVO;
 import nc.vo.tam.tongren008.ApplyHVO;
@@ -816,6 +817,17 @@ public class BclbImpl  implements IBclbDefining {
 		ApplyHVO hvo = (ApplyHVO)billvo.getParentVO();
 		SuperDMO dmo = new SuperDMO();
 		BaseDAO baseDao = new BaseDAO();
+		
+		String sql11 = "select * from trtam_deptdoc_kq  where nvl(bisseal,'N') = 'N' and nvl(dr , 0) =0";
+		ArrayList<DeptKqVO> list11 = (ArrayList<DeptKqVO>)baseDao.executeQuery(sql11, new BeanListProcessor(DeptKqVO.class));
+		DeptKqVO[] deptkqvos = list11.toArray(new DeptKqVO[0]);
+		
+		HashMap<String,DeptKqVO> deptKqVO = new HashMap<String, DeptKqVO>();
+		
+		for(DeptKqVO deptvo:deptkqvos){
+			deptKqVO.put(deptvo.getPk_dept(), deptvo);
+		}
+		
 		ApplyHVO oldvo = (ApplyHVO)dmo.queryByPrimaryKey(ApplyHVO.class, hvo.getPrimaryKey());
 		if(oldvo==null||!oldvo.getTs().equals(hvo.getTs())){
 			throw new BusinessException("数据已被他人修改，请刷新");
@@ -840,12 +852,33 @@ public class BclbImpl  implements IBclbDefining {
 				for(PanbanWeekBVO paibanvo : paibanbvos){
 					try {
 						String ddate = paibanvo.getDdate().toString();
+						
+						String pk_dept = paibanvo.getPk_dept();
+						String vcode = deptKqVO.get(pk_dept).getVcode();
+						
+						String flag="N"; //是护理科室
+						if( vcode.length()>=4 && ("1900").equals(vcode.substring(0, 4))==false){
+							//不是护理科室
+							flag="Y";
+						}else if(vcode.length()<4){
+							//不是护理科室
+							flag="Y";
+						}
+						
 						int numday = 0;
+						
+						if("N".equals(flag)){
+							//护理科室
+							//周排班 修改
 						int index = getDay(ddate);
 						if(index == 1){
 							numday = 7;
 						}else{
 							numday = index - 1;
+						}
+						}else{
+							//月排班 修改
+							numday = paibanvo.getDdate().getDay();
 						}
 						String sql1 = "update trtam_paiban set pk_bb"+numday+" = '',vbbname"+numday+"='' where pk_paiban='"+paibanvo.getPk_paiban()+"'" ;
 						baseDao.executeUpdate(sql1);

@@ -74,6 +74,8 @@ public class ClientUI extends BillTreeCardUI implements ILinkQuery,ItemListener,
 
 	public ClientUI() {
 		super();
+		getButtonManager().getButton(IBillButton.Copy).setName("班别权限分配");
+		
 		initlize();//添加公司选择框
 		this.getBillTree().getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 		initBufferData(getBodysVO());
@@ -81,10 +83,12 @@ public class ClientUI extends BillTreeCardUI implements ILinkQuery,ItemListener,
 	
 	private void initlize() {
 		try {
+			
 			//增加是否显示封存数据Panel
 			addSealdataPanel();
 			initLangData();
 			setBillOperate(nc.ui.trade.base.IBillOperate.OP_INIT);
+			getButtonManager().getButton(IBillButton.Copy).setEnabled(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

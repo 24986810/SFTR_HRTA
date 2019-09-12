@@ -467,7 +467,26 @@ public class ExcelOut {
 	        WritableCellFormat cellFormat = new WritableCellFormat();
 	        cellFormat.setVerticalAlignment(jxl.format.VerticalAlignment.CENTRE);
    
+	       
+	        
+	        
 	        ExcelPsnVO[] excelvos = getExcelPsnVOS(values);
+	        
+	        //排序
+	        for(int i=1;i<excelvos.length ;i++){
+	        	for(int j=1;j<excelvos.length -i;j++){
+	        		String psncode = excelvos[j].getPsncode();
+	        		String nextPsncode = excelvos[j+1].getPsncode();
+	        		if(psncode.compareTo(nextPsncode)>0 ){
+	        			ExcelPsnVO temp = excelvos[j];
+	        			excelvos[j] = excelvos[j+1];
+	        			excelvos[j+1] = temp;
+	        			
+	        		}
+	        	}
+	        }
+	        
+	        
 	        ArrayList<ExcelPsnVO> list = new ArrayList<ExcelPsnVO>();
 	        ArrayList<ExcelPsnVO> psnlist = new ArrayList<ExcelPsnVO>();
 	        ArrayList<ExcelPsnVO> monthlist = new ArrayList<ExcelPsnVO>();
@@ -686,6 +705,8 @@ public class ExcelOut {
 	        	jxl.write.Label label3020 = new Label(9, i, excelvo.getPsncode2(), wff_merge); 
 	        	jxl.write.Label label3021 = new Label(10, i, excelvo.getPanname2(), wff_merge); 
 	        	jxl.write.Label label3022 = new Label(11, i, excelvo.getAppointmentheld(), wff_merge); 
+	        	jxl.write.Label label3023 = new Label(12, i, excelvo.getMonthStr(), wff_merge); 
+	        	jxl.write.Label label3024 = new Label(13, i, excelvo.getMonthNum(), wff_merge); 
 //	        	jxl.write.Number label3017 = new jxl.write.Number(6,i,899.01,wcfN);
 
 	        	
@@ -701,7 +722,8 @@ public class ExcelOut {
 	        	label3020.setCellFormat(cellFormat);
 	        	label3021.setCellFormat(cellFormat);
 	        	label3022.setCellFormat(cellFormat);
-	        	
+	        	label3023.setCellFormat(cellFormat);
+	        	label3024.setCellFormat(cellFormat);
 	        	
 	        	ws.addCell(label3011);
 	        	ws.addCell(label3012);
@@ -715,6 +737,8 @@ public class ExcelOut {
 	        	ws.addCell(label3020);
 	        	ws.addCell(label3021);
 	        	ws.addCell(label3022);
+	        	ws.addCell(label3023);
+	        	ws.addCell(label3024);
 	        }
 	        
 	        ExcelPsnVO[] merg = list.toArray(new ExcelPsnVO[0]);
@@ -847,6 +871,14 @@ public class ExcelOut {
 					}else if(j == 11){
 						String appointmentheld =  values[i][j]!=null?values[i][j].toString():"";
 						excelpsnvo.setAppointmentheld(appointmentheld);
+					}else if(j==14){
+						//考勤月份
+						String monthStr =  values[i][j]!=null?values[i][j].toString():"";
+						excelpsnvo.setMonthStr(monthStr);
+					}else if(j== 15){
+						//月数
+						String monthNum =  values[i][j]!=null?values[i][j].toString():"";
+						excelpsnvo.setMonthNum(monthNum);
 					}
 				}
 				

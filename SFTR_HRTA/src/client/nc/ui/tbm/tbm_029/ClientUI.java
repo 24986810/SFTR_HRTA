@@ -287,6 +287,7 @@ public class ClientUI extends nc.ui.bd.mmpub.MMToftPanel implements
 		getChbYbkssj().setEnabled(false);
 		getChbYbjssj().setEnabled(false);
 		getTfYbjssj().setEnabled(false);
+		
 		getTfkgsc().setText("");
 		getWtModel().clearTable();
 		getrbButton_Auto().setSelected(true);
@@ -583,9 +584,9 @@ public class ClientUI extends nc.ui.bd.mmpub.MMToftPanel implements
 			String sql;
 			if ("0001".equals(pkCorp)) {
 				//0001AA1000000010QM5W
-				sql = "where bd_defdoc.pk_defdoclist = '00018L1000000010MZ10' and pk_crop = '0001'";
+				sql = "where bd_defdoc.pk_defdoclist in (select pk_defdoclist from bd_defdoclist where doclistcode='PBRPT' and dr =0) and pk_crop = '0001'";
 			} else {
-				sql = "where bd_defdoc.pk_defdoclist = '00018L1000000010MZ10' and pk_corp in ('" + pkCorp + "','0001') ";
+				sql = "where bd_defdoc.pk_defdoclist in (select pk_defdoclist from bd_defdoclist where doclistcode='PBRPT' and dr =0) and pk_corp in ('" + pkCorp + "','0001') ";
 			}
 			model.setWherePart(sql);
 			bbmbRef.setRefModel(model);
@@ -3072,6 +3073,7 @@ public class ClientUI extends nc.ui.bd.mmpub.MMToftPanel implements
 			getTfkgsc().setEnabled(false);
 			getrbButton_Auto().setEnabled(true);
 			getrbButton_clz().setEnabled(true);
+			getbbmbRef().setEnabled(true);
 
 			boAdd.setEnabled(false);
 			boModify.setEnabled(false);
