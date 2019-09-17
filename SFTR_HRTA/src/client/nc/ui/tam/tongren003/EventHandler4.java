@@ -364,7 +364,7 @@ public class EventHandler4 extends CardEventHandler {
 					weekvo.setNsygxs(map.get(weekvo.getPk_psndoc()));
 					
 					if("MB".equals(operatetype) || "HL".equals(operatetype) ||"QT".equals(operatetype)||"YW".equals(operatetype)){
-						for(int i=1;i<days;i++){
+						for(int i=1;i<=days;i++){
 							String pk_bb = (String)weekvo.getAttributeValue("pk_bb"+i);
 							if(pk_bb != null){
 								String[] values = pk_bb.split(",");
