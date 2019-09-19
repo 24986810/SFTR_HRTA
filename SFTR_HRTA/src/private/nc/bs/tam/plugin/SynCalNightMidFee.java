@@ -9,7 +9,7 @@ import nc.bs.dao.BaseDAO;
 import nc.bs.dao.DAOException;
 import nc.bs.pub.taskcenter.BgWorkingContext;
 import nc.bs.pub.taskcenter.IBackgroundWorkPlugin;
-import nc.ui.trade.business.HYPubBO_Client;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.uif.pub.exception.UifException;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDate;
@@ -45,6 +45,7 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 	 * @throws UifException 
 	 */
 	public void backupsPaibanWeek(UFDate curdate) throws DAOException, ParseException{
+		BaseDAO baseDAO = new BaseDAO();
 		
 		int month = curdate.getMonth()-1; //上月
 		int year = curdate.getYear(); //年
@@ -66,14 +67,10 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 		String vdate = beginVdate + "至" +endVdate;
 		
 		//查询月排班
-		PaibanWeekVO[] weekvos = null;
-		try {
-			weekvos = (PaibanWeekVO[])HYPubBO_Client.queryByCondition(PaibanWeekVO.class,
-					"isnull(dr,0)=0 and vdate='"+vdate+"'");
-		} catch (UifException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String sql = " select * from trtam_paiban where nvl(dr,0)=0 and vdate='"+vdate+"'";
+		ArrayList<PaibanWeekVO> weekvoslist = (ArrayList<PaibanWeekVO>) baseDAO.executeQuery(sql, new BeanListProcessor(PaibanWeekVO.class));
+		PaibanWeekVO[] weekvos = weekvoslist.toArray( new PaibanWeekVO[weekvoslist.size()]);  //new PanbanWeekBVO[list_b.size()]
+			
 		
 		ArrayList<MidNightFeeVO> list = new ArrayList<MidNightFeeVO>();
 		for(PaibanWeekVO vo: weekvos){
@@ -115,16 +112,13 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 		
 		for(String vdateStr:weekVdateStr){
 			//查询周排班
-			try {
-				weekvos = (PaibanWeekVO[])HYPubBO_Client.queryByCondition(PaibanWeekVO.class,
-						"isnull(dr,0)=0 and vdate='"+vdateStr+"'");
-			} catch (UifException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				
+			String sql1=" select * from trtam_paiban where nvl(dr,0)=0 and vdate = '"+vdateStr+"'";
+			ArrayList<PaibanWeekVO> weekvosslist = (ArrayList<PaibanWeekVO>) baseDAO.executeQuery(sql1, new BeanListProcessor(PaibanWeekVO.class));
+			PaibanWeekVO[] weekvoss = weekvosslist.toArray( new PaibanWeekVO[weekvosslist.size()]);  //new PanbanWeekBVO[list_b.size()]
 		
-			if (weekvos != null || weekvos.length >0){
-				for(PaibanWeekVO vo: weekvos){
+			if (weekvoss != null || weekvoss.length >0){
+				for(PaibanWeekVO vo: weekvoss){
 					MidNightFeeVO bak = copyToBak(vo);
 					list.add(bak);
 				}
@@ -132,12 +126,7 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 		}
 		
 		//插入到 排班备份表
-		try {
-			HYPubBO_Client.insertAry( list.toArray(new MidNightFeeVO[list.size()]));
-		} catch (UifException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		baseDAO.insertVOArray( list.toArray(new MidNightFeeVO[list.size()]));
 		
 		System.out.println("执行完了。");
 	}
@@ -261,14 +250,9 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 		
 		BaseDAO dao = new BaseDAO();
 		
-		PanbanWeekBVO[] bvo=null ;
-		try {
-			 bvo = (PanbanWeekBVO[])HYPubBO_Client.queryByCondition(PanbanWeekBVO.class,
-					"isnull(dr,0)=0 and (ddate >='"+ddateBegin+"' and ddate <= '"+ddateEnd+"' )");
-		} catch (UifException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		 String sql = " select * from trtam_paiban_b where nvl(dr,0)=0 and (ddate >= '"+ddateBegin+"' and ddate <= '"+ddateEnd+"' )";
+		 ArrayList<PanbanWeekBVO> bvoslist = (ArrayList<PanbanWeekBVO>) dao.executeQuery(sql, new BeanListProcessor(PanbanWeekBVO.class));
+		 PanbanWeekBVO[] bvo = bvoslist.toArray( new PanbanWeekBVO[bvoslist.size()]);  //new PanbanWeekBVO[list_b.size()]
 		
 		ArrayList<MidNightFeeBVO> bvolist = new ArrayList<MidNightFeeBVO>();
 		for(PanbanWeekBVO paibanweekbvo :bvo){
@@ -293,7 +277,9 @@ public class SynCalNightMidFee implements IBackgroundWorkPlugin {
 	 * @throws UifException 
 	 */
 	public void exportConfirm(BgWorkingContext arg0) throws DAOException, ParseException, UifException {
-		UFDate curdate = nc.ui.hr.global.Global.getServerTime().getDate(); //服务器时间
+		//UFDate curdate = nc.ui.hr.global.Global.getServerTime().getDate(); //服务器时间
+		UFDate curdate = new UFDate();
+		
 		//备份排班表A
 		backupsPaibanWeek(curdate);
 		

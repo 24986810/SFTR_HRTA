@@ -1,12 +1,16 @@
 package nc.ui.tam.tongren.basepower005;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+
+import javax.swing.table.TableColumnModel;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.hr.ta.IBclbDefining;
@@ -15,12 +19,16 @@ import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.BeanProcessor;
+import nc.ui.hr.frame.util.table.MultiSelector;
+import nc.ui.hr.frame.util.table.TableMultiSelHelper;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.ui.pub.beans.UIDialog;
 import nc.ui.pub.beans.UIDialogEvent;
+import nc.ui.pub.beans.UIMenuItem;
 import nc.ui.pub.beans.UIPanel;
+import nc.ui.pub.beans.UIPopupMenu;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillData;
 import nc.ui.pub.bill.BillListPanel;
@@ -61,6 +69,14 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
 	private String m_pk_user = null;
 	
 	private String m_pk_hrp_classtype = null;
+	
+	private String selColName = new MultiSelector().SEL_COL_NAME; // the name of the
+	private UIPopupMenu pmHead;
+	private ActionListener pmListener = null;
+	final String SEL_ALL = "SEL_ALL"; 
+	final String SEL_NOT_ALL = "SEL_NOT_ALL"; 
+	
+	 
     /**
      *  
      */
@@ -117,6 +133,7 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
         //===================BillListPanel加载数据=======================
         try {
             this.billListLoadData(m_pk_user,m_pk_hrp_classtype);
+            
         } catch (Exception e) {
             nc.ui.pub.beans.MessageDialog.showErrorDlg(this, "错误", e
                     .getMessage());
@@ -133,15 +150,12 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
     private void initPanel() {
         getContentPane().setLayout(new BorderLayout());
         UIPanel panel = new UIPanel();
-//        panel.setPreferredSize(new Dimension(50, 30));
         panel.setLayout(new BorderLayout());
-//        try {
-//			panel.add(this.getBillCardPanel());
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+        
         this.billListLoadTemplet(); //BillListPanel加载模板
+        
+        billList.getBodyTable().getTableHeader().addMouseListener(new HeaderPopupMouseAdapter());
+        billList.getBodyItem("flag").setEnabled(true);
         getContentPane().add(billList, BorderLayout.CENTER);
         
         UIPanel btnPanel = new UIPanel();
@@ -149,10 +163,127 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
        
         btnPanel.add(this.getBtnPrint());
         btnPanel.add(this.getBtnClose());
-       
+        
+ 
         getContentPane().add(btnPanel, BorderLayout.SOUTH);
     }
 
+    
+    /*********************************************************************************************************
+     * header popup menu for the sel.
+     ********************************************************************************************************/
+    private class HeaderPopupMouseAdapter extends MouseAdapter
+    {
+        /*****************************************************************************************************
+         * Created on 2019-9-19 13:53:56<br>
+         * @see java.awt.event.MouseAdapter#mouseReleased(java.awt.event.MouseEvent)
+         ****************************************************************************************************/
+        @Override
+        public void mouseReleased(java.awt.event.MouseEvent e)
+        {
+            TableColumnModel colModel = billList.getBodyTable().getTableHeader().getColumnModel();
+            int index = colModel.getColumnIndexAtX(e.getX());
+           
+            if (getSelColName().equals(colModel.getColumn(index).getHeaderValue()))
+            {
+                getPmHead().show((Component) e.getSource(), e.getX(), e.getY());
+            }
+        }
+    }
+    
+    /*********************************************************************************************************
+     * @return Returns the selColName.
+     ********************************************************************************************************/
+    public String getSelColName()
+    {
+        return selColName;
+    }
+    
+    /*********************************************************************************************************
+     * @return Returns the pmHead.
+     ********************************************************************************************************/
+    public UIPopupMenu getPmHead()
+    {
+        if (pmHead == null)
+        {
+            pmHead = new UIPopupMenu();
+            
+            UIMenuItem miSelAll = new UIMenuItem(new MultiSelector().SEL_ALL_NAME);
+            miSelAll.setActionCommand(SEL_ALL);
+            miSelAll.addActionListener(getPmListener());
+            
+            UIMenuItem miNotSelAll = new UIMenuItem(new MultiSelector().SEL_NOT_ALL_NAME);
+            miNotSelAll.setActionCommand(SEL_NOT_ALL);
+            miNotSelAll.addActionListener(getPmListener());
+
+            pmHead.add(miSelAll);
+            pmHead.add(miNotSelAll);
+         
+        }
+        
+        return pmHead;
+    }
+    
+    /*********************************************************************************************************
+     * @return Returns the pmListener.
+     ********************************************************************************************************/
+    public ActionListener getPmListener()
+    {
+        if (pmListener == null)
+        {
+            pmListener = new HeaderPopupMenuActionListener();
+        }
+        
+        return pmListener;
+    }
+    
+    /*********************************************************************************************************
+     * the head popup menu listener.
+     ********************************************************************************************************/
+    private class HeaderPopupMenuActionListener implements ActionListener
+    {
+        /*****************************************************************************************************
+         * Created on 20019-9-19 13:53:34<br>
+         * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+         ****************************************************************************************************/
+        public void actionPerformed(ActionEvent e)
+        {
+            if (e.getActionCommand().equals(SEL_ALL))
+            {
+                selectAllRow();
+            }
+            else if (e.getActionCommand().equals(SEL_NOT_ALL))
+            {
+                selectNone();
+            }
+            
+        }
+    }
+    
+    public void selectAllRow()
+    {
+        int rowcount = billList.getBodyTable().getRowCount();
+        for (int i = 0; i <= rowcount; i++)
+        {
+            if (billList.getBodyTable().getModel().isCellEditable(i, 0))
+            {
+            	billList.getBodyBillModel().setValueAt("Y", i, "flag");
+            }
+        }
+    }
+    
+    public void selectNone()
+    {
+        int rowcount = billList.getBodyTable().getRowCount();
+        for (int i = 0; i <= rowcount; i++)
+        {
+            if (billList.getBodyTable().getModel().isCellEditable(i, 0))
+            {
+            	billList.getBodyBillModel().setValueAt("N", i, "flag");
+            }
+        }
+    }
+    
     
     private BillCardPanel getBillCardPanel() throws Exception {
 		if (m_billCardPanel == null) {
@@ -168,7 +299,7 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
      */
     private void billListLoadTemplet() {
         try {
-            getBillListPanel().loadTemplet("0001AA100000001101NZ");
+            getBillListPanel().loadTemplet("0001AA100000001101NZ");    
         } catch (java.lang.Exception e) {
         	e.printStackTrace(System.out);
             MessageDialog.showErrorDlg(this, "提示", "当前操作人没有可用的模板");
@@ -185,7 +316,7 @@ public class BasePowerDLG extends UIDialog implements ActionListener{
     		IBclbDefining defin = NCLocator.getInstance().lookup(IBclbDefining.class);
     		BclbHeaderVO[] bclbvos = defin.queryBclb029AllBclbHeader("1002", null);
     		
-    		getBillListPanel().getBodyItem("flag").setEnabled(true);
+    		
     		getBillListPanel().setBodyValueVO(bclbvos);
     		getBillListPanel().getBodyBillModel().execLoadFormula();
     		

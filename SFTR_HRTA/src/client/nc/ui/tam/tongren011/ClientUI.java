@@ -2,10 +2,13 @@ package nc.ui.tam.tongren011;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.hr.ta.IBclbDefining;
 import nc.itf.hrp.pub.HRPPubTool;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.VectorProcessor;
 import nc.ui.bd.ref.RefUIConfig;
 import nc.ui.bd.ref.UFRefGridTreeUI;
 import nc.ui.hrp.pub.bill.HRPManagerSingleHeadUI;
@@ -27,6 +30,7 @@ import nc.ui.trade.button.IBillButton;
 import nc.ui.trade.manage.ManageEventHandler;
 import nc.uif.pub.exception.UifException;
 import nc.vo.bd.b06.PsndocVO;
+import nc.vo.hr.para2.ParValueVO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
@@ -34,6 +38,7 @@ import nc.vo.pub.lang.UFDouble;
 import nc.vo.sm.user.UserAndClerkVO;
 import nc.vo.tam.tongren.power.UserDeptVO;
 import nc.vo.tam.tongren001.DeptKqBVO;
+import nc.vo.tam.tongren003.PaibanWeekVO;
 import nc.vo.tam.tongren003.PanbanWeekBVO;
 import nc.vo.tam.tongren006.ZhibanTempVO;
 import nc.vo.tam.tongren011.AdjustTamVO;
@@ -44,14 +49,36 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 	public ClientUI() {
 		super();
 		if(getBillListPanel().getHeadBillModel().getItemByKey("bbname_new")!=null){
+			
 			UIRefPane pane = (UIRefPane)getBillListPanel().getHeadBillModel().getItemByKey("bbname_new").getComponent();
-			TambblbRefTreeModel model = new TambblbRefTreeModel("班别档案");
+			TambblbRefTreeModel model = new TambblbRefTreeModel("班别档案111");
 			pane.setRefModel(model);
 			pane.setMultiSelectedEnabled(true);
 			pane.setAutoCheck(false);
 			pane.setReturnCode(true);
 			pane.setTreeGridNodeMultiSelected(true);
+			
+			//Vector selectedData = pane.getSelectedData();//选中的数据
+			//int bufferSize = getBufferData().getVOBufferSize(); //行数
+			//AggregatedValueObject byRowNo = getBufferData().getVOByRowNo(1);
 			getBillListPanel().getHeadBillModel().getItemByKey("bbname_new").setIDColName("pk_bb_new");
+			
+			
+			/*for(int i=0;i<getBufferData().getVOBufferSize() ; i++){
+				System.out.println(i);
+				UIRefPane pane = (UIRefPane)getBillListPanel().getHeadBillModel().getItemByKey("bbname_new").getComponent();
+				TambblbRefTreeModel model = new TambblbRefTreeModel("班别档案111");
+				pane.setRefModel(model);
+				pane.setMultiSelectedEnabled(true);
+				pane.setAutoCheck(false);
+				pane.setReturnCode(true);
+				pane.setTreeGridNodeMultiSelected(true);
+				HYBillVO byRowNo = (HYBillVO) getBufferData().getVOByRowNo(i);
+				AdjustTamVO parentVO = (AdjustTamVO) byRowNo.getParentVO();
+				String vdef1 = parentVO.getVdef1(); //来源？
+				
+				getBillListPanel().getHeadBillModel().getItemByKey("bbname_new").setIDColName("pk_bb_new");
+			}*/
 		}
 		
 		
@@ -82,22 +109,85 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 		}
 		if(e.getKey().equals("bbname_new")){
 			UIRefPane pane = (UIRefPane)getBillListPanel().getHeadBillModel().getItemByKey(e.getKey()).getComponent();
-			String pk_dept = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "pk_dept");
+			//String pk_dept = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "pk_dept");
+			String vdef1 = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "vdef1");
+			
+			String psnDoc = null;
+			try {
+				psnDoc = getPsnDoc(vdef1);
+			} catch (BusinessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} //pk_psndoc
 			
 			String value = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "pk_bb_new");
 			if(value!=null&&value.trim().length()>=0){
 				pane.setPKs(value.split(","));
 			}
-			ArrayList<String> list_pk = new ArrayList<String>();
+			ArrayList<String> list_pkdoc = new ArrayList<String>(); //存的科室id
+			ArrayList<String> list_pk = new ArrayList<String>(); //存的班别id
 			try {
-				UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=2 and pk_docid='"+pk_dept+"' ");
-				if(deptvos2!=null&&deptvos2.length>0){
-					for(UserDeptVO vo:deptvos2){
-						if(!list_pk.contains(vo.getPk_user())){
-							list_pk.add(vo.getPk_user());
+				//用户-》科室
+				if(psnDoc !="" || psnDoc.trim().length()!=0){
+					UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=0 and pk_user='"+psnDoc+"' "); //and powertype=2
+					if(deptvos2!=null&&deptvos2.length>0){
+						for(UserDeptVO vo:deptvos2){
+							if(!list_pkdoc.contains(vo.getPk_docid())){
+								list_pkdoc.add(vo.getPk_docid());
+							}
+						}
+					}
+					//科室-》班别
+					UserDeptVO[] deptvos3 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=2 " +HRPPubTool.formInSQL("pk_docid", list_pkdoc)+"");
+					if(deptvos3!=null&&deptvos3.length>0){
+						for(UserDeptVO vo:deptvos3){
+							if(!list_pk.contains(vo.getPk_user())){
+								list_pk.add(vo.getPk_user());
+							}
+						}
+					}
+					
+				}else{
+					//是系统管理员
+					IUAPQueryBS service = (IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+					String strSQL = "select  b.cuserid"
+										+" from sm_user b"
+										+"    where b.user_name  ='" + vdef1+"' and b.dr=0";
+					String pk_psndoc = "";
+					
+					Vector o1 = null;
+					try {
+						o1 = (Vector) service.executeQuery(strSQL,new VectorProcessor());
+					} catch (BusinessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					if (o1.size() > 0 && o1 != null) {
+						for (int i = 0; i < o1.size(); i++) {
+							pk_psndoc = new String(((Vector) o1.elementAt(i)).elementAt(0) != null ? ((Vector) o1.elementAt(i)).elementAt(0).toString() : ""); 
+						}
+					}
+					
+					UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=0 and pk_user='"+pk_psndoc+"' "); 
+					if(deptvos2!=null&&deptvos2.length>0){
+						for(UserDeptVO vo:deptvos2){
+							if(!list_pkdoc.contains(vo.getPk_docid())){
+								list_pkdoc.add(vo.getPk_docid());
+							}
+						}
+					}
+					//科室-》班别
+					UserDeptVO[] deptvos3 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=2 " +HRPPubTool.formInSQL("pk_docid", list_pkdoc)+"");
+					if(deptvos3!=null&&deptvos3.length>0){
+						for(UserDeptVO vo:deptvos3){
+							if(!list_pk.contains(vo.getPk_user())){
+								list_pk.add(vo.getPk_user());
+							}
 						}
 					}
 				}
+				
+				
 			} catch (UifException ee) {
 				// TODO Auto-generated catch block
 				ee.printStackTrace();
@@ -382,6 +472,24 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 			e.printStackTrace();
 		}
 	}
+	
+	public String getPsnDoc(String psnname) throws BusinessException{
+		IUAPQueryBS service = (IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+		String strSQL = "select  b.pk_psndoc"
+							+" from bd_psndoc b"
+							+"    where b.psnname  ='" + psnname+"' and b.dr=0";
+		String pk_psndoc = "";
+		
+		ArrayList<PaibanWeekVO> list_vo = new ArrayList<PaibanWeekVO>();
+		Vector o1 = (Vector) service.executeQuery(strSQL,new VectorProcessor());
+		if (o1.size() > 0 && o1 != null) {
+			for (int i = 0; i < o1.size(); i++) {
+				pk_psndoc = new String(((Vector) o1.elementAt(i)).elementAt(0) != null ? ((Vector) o1.elementAt(i)).elementAt(0).toString() : ""); 
+			}
+		}
+		return pk_psndoc;
+	}
+	
 	@Override
 	protected AbstractManageController createController() {
 		// TODO 自动生成方法存根

@@ -285,13 +285,13 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 	protected void initUIData() {
 		// TODO Auto-generated method stub
 		try {
-			IBclbDefining def = NCLocator.getInstance().lookup(IBclbDefining.class);
-			try {
-				def.getOAHoilday(new UFDate(new Date()));
-			} catch (BusinessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			IBclbDefining def = NCLocator.getInstance().lookup(IBclbDefining.class);
+//			try {
+//				def.getOAHoilday(new UFDate(new Date()));
+//			} catch (BusinessException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			AdjustTamVO[] vos = (AdjustTamVO[])HYPubBO_Client.queryByCondition(AdjustTamVO.class, 
 					" isnull(dr,0)=0 and pk_corp='"+_getCorp().getPrimaryKey()+"'  and istate=1 and vtype=1 and pk_dept in (select pk_docid from bd_tr_userpower where isnull(dr,0)=0 and pk_user='"+_getOperator()+"' and powertype=0 and  pk_corp='"+_getCorp().getPrimaryKey()+"') ");
 			if(vos!=null&&vos.length>0){
