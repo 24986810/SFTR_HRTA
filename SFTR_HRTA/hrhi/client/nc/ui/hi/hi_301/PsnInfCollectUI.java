@@ -4976,6 +4976,7 @@ public class PsnInfCollectUI extends nc.ui.hr.base.HRToftPanel implements
 				ivjPsnList.setBBodyMenuShow(false);
 				ivjPsnList.setModuleName(getModuleName());
 				ivjPsnList.removeTableSortListener();
+				
 			} catch (java.lang.Throwable ivjExc) {
 				handleException(ivjExc);
 			}

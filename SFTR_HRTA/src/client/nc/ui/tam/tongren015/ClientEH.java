@@ -13,6 +13,8 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.hr.ta.IBclbDefining;
 import nc.itf.hrp.pub.HRPPubTool;
 import nc.itf.hrp.pub.Ihrppub;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.ui.hrp.pub.bill.HRPEventhandle;
 import nc.ui.hrp.pub.bill.HRPEventhandleSingleHead;
 import nc.ui.pub.ButtonObject;
@@ -226,7 +228,7 @@ public class ClientEH extends HRPEventhandleSingleHead {
 						if(list_zb.contains(pk_bb)){ //判断是不是值班
 							
 							ZhibanTempVO[] tempvos = (ZhibanTempVO[])HYPubBO_Client.queryByCondition(ZhibanTempVO.class,
-									" isnull(dr,0)=0 and isnull(biscancle,'N')='N'  and pk_bb = '"+pk_bb+"' and dbegindate<='"+last+"' and pk_dept like '%"+tamvo.getPk_dept()+"%'");
+									" isnull(dr,0)=0 and isnull(biscancle,'N')='N'  and pk_bb = '"+pk_bb+"' and dbegindate<='"+last+"' and pk_paiban = '"+tamvo.getPk_temp()+"'");
 							
 							//
 							if(tempvos !=null && tempvos.length > 0) {
@@ -494,17 +496,60 @@ public class ClientEH extends HRPEventhandleSingleHead {
 						if(list_zb.contains(pk_bb_old)){
 							
 							ZhibanTempVO[] tempvos = (ZhibanTempVO[])HYPubBO_Client.queryByCondition(ZhibanTempVO.class,
-									" isnull(dr,0)=0 and isnull(biscancle,'N')='N'  and pk_bb = '"+pk_bb_old+"' and dbegindate<='"+last+"' and pk_dept like '%"+tamvo.getPk_dept()+"%'");
+									" isnull(dr,0)=0 and isnull(biscancle,'N')='N'  and pk_bb = '"+pk_bb_old+"' and dbegindate<='"+last+"' and pk_paiban = '"+tamvo.getPktemp_old()+"'");
 
 							if(tempvos !=null && tempvos.length > 0) {
 								bvo.setBiszb(new UFBoolean(true));
-								bvo.setPk_deptzb(tamvo.getPk_dept());
-								bvo.setDeptzbname(tamvo.getDeptname());
+								bvo.setPk_deptzb(tempvos[0].getPk_dept());
+								bvo.setDeptzbname(tempvos[0].getDeptnamekq());
 								bvo.setPk_temp(tempvos[0].getPk_paiban());
 
 							}
 							
-							
+								UFDate ddate = tamvo.getDdate();
+								int day = ddate.getDay();
+								UFDate dateBefore = ddate.getDateBefore(day-1); //月初
+								
+								IUAPQueryBS bs= NCLocator.getInstance().lookup(IUAPQueryBS.class);
+								String findbvosql = "select * from ("
+									+" select * from trtam_paiban_b a where " 
+									+"nvl(a.dr,0)=0 and a.biszb ='Y' and a.pk_deptzb like '%"+tempvos[0].getPk_dept()+"%' and a.ddate <= '"+tamvo.getDdate().toString()+"' and a.ddate >='"+dateBefore.toString()+"'order by a.ddate desc ) where rownum =1";
+								ArrayList<PanbanWeekBVO> findvos = (ArrayList<PanbanWeekBVO>)bs.executeQuery(findbvosql, new BeanListProcessor(PanbanWeekBVO.class));
+								
+								if(findvos != null && findvos.size() >0){
+									bvo.setVbillstatus1(findvos.get(0).getVbillstatus1());
+									bvo.setVbillstatus2(findvos.get(0).getVbillstatus2());
+									bvo.setVbillstatus3(findvos.get(0).getVbillstatus3());
+								}else{
+									bvo.setVbillstatus1("0");
+									bvo.setVbillstatus2("0");
+									bvo.setVbillstatus3("0");
+								}
+								
+
+								/*bvo.setBiszb(new UFBoolean(true));
+								bvo.setPk_deptzb(tempvos[0].getPk_dept());
+								bvo.setDeptzbname(tempvos[0].getDeptnamekq());
+								bvo.setPk_temp(tempvos[0].getPk_paiban());
+								
+								UFDate ddate = tamvo.getDdate();
+								int day = ddate.getDay();
+								UFDate dateBefore = ddate.getDateBefore(day-1); //月初
+								
+								PanbanWeekBVO[] findvos = (PanbanWeekBVO[])HYPubBO_Client.queryByCondition(PanbanWeekBVO.class,
+										" isnull(dr,0)=0 and biszb = 'Y' and pk_deptzb like'"+tempvos[0].getPk_dept()+"' and ddate <='"+tamvo.getDdate().toString()+"' and ddate >='"+dateBefore.toString()+"' and pk_temp='"+tempvos[0].getPk_paiban()+"' order by ddate desc");
+								
+								if(findvos != null && findvos.length >0){
+									bvo.setVbillstatus1(findvos[0].getVbillstatus1());
+									bvo.setVbillstatus2(findvos[0].getVbillstatus2());
+									bvo.setVbillstatus3(findvos[0].getVbillstatus3());
+								}else{
+									bvo.setVbillstatus1("0");
+									bvo.setVbillstatus2("0");
+									bvo.setVbillstatus3("0");
+								}
+							*/
+								
 							
 						}else{
 							bvo.setBiszb(new UFBoolean(false));

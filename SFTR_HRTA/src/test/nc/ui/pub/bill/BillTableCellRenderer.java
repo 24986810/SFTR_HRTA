@@ -39,7 +39,7 @@ public class BillTableCellRenderer extends JLabel implements TableCellRenderer,
 
 	private Color unselectedBackground;
 
-	private int m_iDataType = 0; // 数据类型 zhanghua
+	private int m_iDataType = 0; // 数据类型
 
 	// private int m_iDecimalDigits = 0; // 小数位数
 

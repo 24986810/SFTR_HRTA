@@ -897,7 +897,7 @@ public class EventHandler2 extends CardEventHandler {
 				list_psn.add(weekvo.getPk_psndoc());
 			}
 
-			HYPubBO_Client.deleteByWhereClause(PanbanWeekBVO.class, "    isnull(biszb,'N')='N' and isnull(dr,0)=0 "+HRPPubTool.formInSQL("pk_dept", list)+" and (ddate>= '"+begin+"' and ddate<='"+end+"') ");
+			//HYPubBO_Client.deleteByWhereClause(PanbanWeekBVO.class, "    isnull(biszb,'N')='N' and isnull(dr,0)=0 "+HRPPubTool.formInSQL("pk_dept", list)+" and (ddate>= '"+begin+"' and ddate<='"+end+"') ");
 			HYPubBO_Client.insertAry(list_b.toArray(new PanbanWeekBVO[list_b.size()]));
 			
 			
@@ -1158,15 +1158,8 @@ public class EventHandler2 extends CardEventHandler {
 				getBillCardPanelWrapper().getBillCardPanel().getBillModel().execLoadFormula();
 			}
 			
-//			String upstatus = getUploadStatus(vdate, list);
-//			
-//			if(upstatus.equals("0") || upstatus.equals("2")){
-//				getButtonManager().getButton(IBillButton.Add).setEnabled(true);
-//				getBillUI().updateButtons();
-//			}else{
 				getButtonManager().getButton(IBillButton.Add).setEnabled(true);
 				getBillUI().updateButtons();
-//			}
 		} catch (BusinessException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

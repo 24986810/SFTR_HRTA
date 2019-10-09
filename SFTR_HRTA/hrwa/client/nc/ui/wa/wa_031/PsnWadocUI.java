@@ -293,6 +293,7 @@ BillEditListener, IQueryFieldValueEditor, IQuickSearch, ActionListener {
 
 	private int currentstat = -1;
 
+	private String querywhere = "";// 查询对话框条件
 	/**
 	 * PsnWadocUI 构造子注解。
 	 */
@@ -2269,6 +2270,8 @@ BillEditListener, IQueryFieldValueEditor, IQuickSearch, ActionListener {
 		for (String tableName : hashSet) {
 			linkedList.add(tableName);
 		}
+		
+		querywhere = strWhere;// zhanghua 
 		return WADelegator.getWaPsndoc().queryWadocMainDataMorePsnclscope(corpPK, strWhere,
 				linkedList, null, null);
 

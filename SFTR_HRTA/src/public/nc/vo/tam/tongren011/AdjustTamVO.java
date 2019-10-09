@@ -56,10 +56,18 @@ public class AdjustTamVO extends SuperVO {
 	private String vmemo;
 	private String deptname;
 	private String pk_temp;// 值班模板
+	private String pktemp_old;// 原来的值班模板
 	
 	
 	
-	
+	public String getPktemp_old() {
+		return pktemp_old;
+	}
+
+	public void setPktemp_old(String pktemp_old) {
+		this.pktemp_old = pktemp_old;
+	}
+
 	public String getPk_temp() {
 		return pk_temp;
 	}

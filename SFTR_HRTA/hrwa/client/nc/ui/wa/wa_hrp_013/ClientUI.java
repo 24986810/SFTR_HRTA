@@ -16,6 +16,7 @@ import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.ui.hrp.pub.ref.CorpTreeRef;
 import nc.ui.hrp.pub.ref.NcModuleRef;
+import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.RefEditEvent;
 import nc.ui.pub.beans.RefEditListener;
@@ -38,10 +39,11 @@ import nc.vo.hrp.pf02.PerioddeptVO;
 import nc.vo.hrp.pub.pub03.DeptDocVO;
 import nc.vo.pub.SuperVO;
 import nc.vo.trade.pub.HYBillVO;
-import nc.vo.uap.rbac.RoleVO;
+import nc.vo.tam.tongren.power.RoleVO;
 import nc.vo.wa.wa_hrp_009.UserDeptVO;
 
 /**
+ * 科室权限根根全院权限范围
  * @author admin
  * 
  */
@@ -158,7 +160,11 @@ public class ClientUI extends BillTreeCardUI implements ILinkQuery,ItemListener,
 		SuperVO[] defdocvos = null;	
 		ArrayList<PerioddeptVO> list=null;
 		try {//有个封存或者取消字段没有增加上
-			list = (ArrayList<PerioddeptVO>) service.retrieveByClause(PerioddeptVO.class,"  (  pk_corp = '"+RefStrategy.getRefPK()+"' and isnull(dr,0)=0 ) ORDER BY vcode " );
+			// zhanghua增加本科室权限
+			String pk_user = ClientEnvironment.getInstance().getUser().getPrimaryKey();
+			String pk_corp=ClientEnvironment.getInstance().getCorporation().getPrimaryKey();
+			String sqlwhere = " pk_perioddept in (SELECT pk_deptdoc FROM bd_wa_userdept WHERE (nvl(dr, 0) = 0) and pk_user = '"+pk_user+"' and pk_corp = '"+pk_corp+"') and ";
+			list = (ArrayList<PerioddeptVO>) service.retrieveByClause(PerioddeptVO.class, sqlwhere + "  (  pk_corp = '"+RefStrategy.getRefPK()+"' and isnull(dr,0)=0 ) ORDER BY vcode " );
 			return list.toArray(new PerioddeptVO[0]);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -280,8 +286,11 @@ public class ClientUI extends BillTreeCardUI implements ILinkQuery,ItemListener,
 			}
 		} catch (Exception e) {e.printStackTrace();	}
 		
+		
 		getButtonManager().getButton(IBillButton.Edit).setEnabled(true);
 		this.updateButtons();
+		
+		getBillCardPanel().getBillModel().sortByColumn("flag", false);
 	}
 
 	@Override

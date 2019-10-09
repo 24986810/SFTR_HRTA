@@ -112,9 +112,9 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 			//String pk_dept = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "pk_dept");
 			String vdef1 = (String)getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "vdef1");
 			
-			String psnDoc = null;
+			String cuserId = null;
 			try {
-				psnDoc = getPsnDoc(vdef1);
+				cuserId = getCuserId(vdef1);
 			} catch (BusinessException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -128,8 +128,8 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 			ArrayList<String> list_pk = new ArrayList<String>(); //存的班别id
 			try {
 				//用户-》科室
-				if(psnDoc !="" || psnDoc.trim().length()!=0){
-					UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=0 and pk_user='"+psnDoc+"' "); //and powertype=2
+				if(cuserId !="" || cuserId.trim().length()!=0){
+					UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=0 and pk_user='"+cuserId+"' "); //and powertype=2
 					if(deptvos2!=null&&deptvos2.length>0){
 						for(UserDeptVO vo:deptvos2){
 							if(!list_pkdoc.contains(vo.getPk_docid())){
@@ -147,44 +147,6 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 						}
 					}
 					
-				}else{
-					//是系统管理员
-					IUAPQueryBS service = (IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
-					String strSQL = "select  b.cuserid"
-										+" from sm_user b"
-										+"    where b.user_name  ='" + vdef1+"' and b.dr=0";
-					String pk_psndoc = "";
-					
-					Vector o1 = null;
-					try {
-						o1 = (Vector) service.executeQuery(strSQL,new VectorProcessor());
-					} catch (BusinessException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					if (o1.size() > 0 && o1 != null) {
-						for (int i = 0; i < o1.size(); i++) {
-							pk_psndoc = new String(((Vector) o1.elementAt(i)).elementAt(0) != null ? ((Vector) o1.elementAt(i)).elementAt(0).toString() : ""); 
-						}
-					}
-					
-					UserDeptVO[] deptvos2 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=0 and pk_user='"+pk_psndoc+"' "); 
-					if(deptvos2!=null&&deptvos2.length>0){
-						for(UserDeptVO vo:deptvos2){
-							if(!list_pkdoc.contains(vo.getPk_docid())){
-								list_pkdoc.add(vo.getPk_docid());
-							}
-						}
-					}
-					//科室-》班别
-					UserDeptVO[] deptvos3 = (UserDeptVO[])HYPubBO_Client.queryByCondition(UserDeptVO.class, " isnull(dr,0)=0 and powertype=2 " +HRPPubTool.formInSQL("pk_docid", list_pkdoc)+"");
-					if(deptvos3!=null&&deptvos3.length>0){
-						for(UserDeptVO vo:deptvos3){
-							if(!list_pk.contains(vo.getPk_user())){
-								list_pk.add(vo.getPk_user());
-							}
-						}
-					}
 				}
 				
 				
@@ -270,20 +232,26 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 							if(vos!=null&&vos.length>0){
 								String names = "";
 								String pks = "";
-								
+								String pktemp_old = "";
 								
 								for(PanbanWeekBVO vo:vos){
 									pks+=""+vo.getPk_bb()+",";
 									names+= ""+map_bb.get(vo.getPk_bb()).getLbmc()+",";
 									
+									if(vo.getPk_temp() !=null){
+										pktemp_old+=""+vo.getPk_temp()+",";
+									}
 									
 								}
 								pks = pks.substring(0, pks.length()-1);
 								names = names.substring(0, names.length()-1);
-								
+								if(pktemp_old.length()>0){
+									pktemp_old = pktemp_old.substring(0, pktemp_old.length()-1);
+								}
 								
 								getBillListPanel().getHeadBillModel().setValueAt(names, e.getRow(), "bbname_old");
 								getBillListPanel().getHeadBillModel().setValueAt(pks, e.getRow(), "pk_bb_old");
+								getBillListPanel().getHeadBillModel().setValueAt(pktemp_old, e.getRow(), "pktemp_old");
 								if(deptvos!=null&&deptvos.length>0){
 									getBillListPanel().getHeadBillModel().setValueAt(deptvos[0].getPk_dept(), e.getRow(),"pk_dept");
 								}
@@ -488,6 +456,22 @@ public class ClientUI extends HRPManagerSingleHeadUI implements BillEditListener
 			}
 		}
 		return pk_psndoc;
+	}
+	
+	public String getCuserId(String psnname) throws BusinessException{
+		IUAPQueryBS service = (IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+		String strSQL = "select  b.cuserid"
+							+" from sm_user b"
+							+"    where b.user_name  ='" + psnname+"' and b.dr=0";
+		String cuserid = "";
+		
+		Vector o1 = (Vector) service.executeQuery(strSQL,new VectorProcessor());
+		if (o1.size() > 0 && o1 != null) {
+			for (int i = 0; i < o1.size(); i++) {
+				cuserid = new String(((Vector) o1.elementAt(i)).elementAt(0) != null ? ((Vector) o1.elementAt(i)).elementAt(0).toString() : ""); 
+			}
+		}
+		return cuserid;
 	}
 	
 	@Override

@@ -11,10 +11,14 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.hr.ta.IBclbDefining;
 import nc.itf.hrp.pub.HRPPubTool;
+import nc.itf.uap.IUAPQueryBS;
+import nc.ui.bd.ref.AbstractRefModel;
+import nc.ui.dbcache.UiDBCacheFacade;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillEditEvent;
@@ -26,6 +30,7 @@ import nc.ui.trade.button.IBillButton;
 import nc.ui.trade.card.BillCardUI;
 import nc.ui.trade.card.CardEventHandler;
 import nc.uif.pub.exception.UifException;
+import nc.vo.dbcache.MatchPkVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.btn.ExcelImportBtnVO;
 import nc.vo.pub.lang.UFBoolean;
@@ -56,8 +61,10 @@ public class ClientUI3 extends BillCardUI {
 	/**
 	 * 
 	 */
+	
 	private static final long serialVersionUID = 1L;
 	private int editstate = 0;//0为非排班状态，1为排班状态
+	
 	public int getEditstate() {
 		return editstate;
 	}
@@ -100,11 +107,13 @@ public class ClientUI3 extends BillCardUI {
 		UFDate end =  new UFDate(getmaxdate(curdate.toString()));
 		int days = end.getDay()-begin.getDay()+1;
 		
-		for(int i=1;i<=days;i++){
+		for(int i=1;i<=31;i++){
 			//			getBillListPanel().getHeadBillModel().getItemByKey("vbbname"+i+"").setComponent(ui);
 			UIRefPane pane = (UIRefPane)getBillCardPanel().getBillModel().getItemByKey("vbbname"+i+"").getComponent();
 			TambblbRefTreeModel model = new TambblbRefTreeModel("班别档案");
 			pane.setRefModel(model);
+			//20190925
+			//pane.getRefModel().setPKMatch(true);
 			pane.setMultiSelectedEnabled(true);
 			//			pane.setWhereString(" lbbm<>'DEFAULT'  and isnull(iscancel,'N')='N' and pk_corp='"+_getCorp().getPrimaryKey()+"' and isnull(dr,0)=0 ");
 			pane.setAutoCheck(false);
@@ -280,10 +289,21 @@ public class ClientUI3 extends BillCardUI {
 		if(e.getKey().startsWith("vbbname")){
 			int x = Integer.parseInt(e.getKey().substring(7));
 			if(e.getValue()!=null){
+				
 				UIRefPane pane = (UIRefPane)getBillCardPanel().getBillModel().getItemByKey(e.getKey()).getComponent();
-				String[] pks = pane.getRefPKs();
+			/*	String value = (String)getBillCardPanel().getBillModel().getValueAt(e.getRow(), "pk_bb"+x+"");
+				if(value != null){
+					UiDBCacheFacade bs = new UiDBCacheFacade();
+					String matchSql = pane.getRefModel().getMatchSql(value.split(","));
+					MatchPkVO pkVO = new MatchPkVO(matchSql,value.split(","),"tbm_bclb.pk_bclbid");
+					Vector vector = bs.matchPK(pkVO, false);
+					pane.getRefModel().setSelectedData(vector);
+				}*/
+				
+				String[] pks = pane.getRefPKs();   //pane.getRefModel().m_strPkFieldCode
 				String[] names = pane.getRefNames();
-				if(pks==null||pks.length<=0){
+				
+				if(pks==null||pks.length<=0){ 
 					if(e.getValue().toString().trim().length()<=0){
 						getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), e.getKey());
 						getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), "pk_bb"+x+"");
@@ -523,9 +543,11 @@ public class ClientUI3 extends BillCardUI {
 	}
 	@Override
 	public boolean beforeEdit(BillEditEvent e) {
+		
 		// TODO Auto-generated method stub
 		if(e.getKey().startsWith("vbbname")){
 			int x = Integer.parseInt(e.getKey().substring(7));
+			
 			UIRefPane pane = (UIRefPane)getBillCardPanel().getBillModel().getItemByKey(e.getKey()).getComponent();
 			String pk_dept = getBillCardPanel().getBillModel().getValueAt(e.getRow(), "pk_dept").toString();
 			
@@ -556,8 +578,101 @@ public class ClientUI3 extends BillCardUI {
 			}
 			pane.setWhereString(sql);
 		}
+		
+		/*int x = Integer.parseInt(e.getKey().substring(7));
+		//if(e.getValue()!=null){
+		//
+		UIRefPane pane = (UIRefPane)getBillCardPanel().getBillModel().getItemByKey(e.getKey()).getComponent();
+		String value = (String)getBillCardPanel().getBillModel().getValueAt(e.getRow(), "pk_bb"+x+"");
+		if(value != null){
+			UiDBCacheFacade bs = new UiDBCacheFacade();
+			String matchSql = pane.getRefModel().getMatchSql(value.split(","));
+			MatchPkVO pkVO = new MatchPkVO(matchSql,value.split(","),"tbm_bclb.pk_bclbid");
+			Vector vector = bs.matchPK(pkVO, false);
+			pane.getRefModel().setSelectedData(vector);
+		}
+		
+		String[] pks = pane.getRefPKs();   //pane.getRefModel().m_strPkFieldCode
+		String[] names = pane.getRefNames();
+		
+		if(pks==null||pks.length<=0){ 
+			if(e.getValue().toString().trim().length()<=0){
+				getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), e.getKey());
+				getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), "pk_bb"+x+"");
+				return super.beforeEdit(e);
+			}else{
+				names = e.getValue().toString().trim().split(",");
+				ArrayList<String> list_pks = new ArrayList<String>();
+				ArrayList<String> list_names = new ArrayList<String>();
+				for(int i=0;i<names.length;i++){
+					IBclbDefining defin = NCLocator.getInstance().lookup(IBclbDefining.class);
+					HashMap<String,BclbHeaderVO> map_bb = new HashMap<String, BclbHeaderVO>();
+					try {
+						BclbHeaderVO[] bclbvos = defin.queryBclb029AllBclbHeader(_getCorp().getPrimaryKey(), null);
+						for(BclbHeaderVO bclbvo:bclbvos){
+							map_bb.put(bclbvo.getLbbm(), bclbvo);
+							map_bb.put(bclbvo.getLbmc(), bclbvo);
+							map_bb.put(bclbvo.getPrimaryKey(), bclbvo);
+						}
+
+					} catch (BusinessException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					
+					BclbHeaderVO bcvo = map_bb.get(names[i]);
+					if(bcvo!=null){
+						// 判断班别是否为值班 zhanghua
+						if(bcvo.getLbmc().indexOf("值班") == -1){
+							list_pks.add(bcvo.getPrimaryKey());
+							list_names.add(bcvo.getLbmc());
+						}
+					}
+				}
+				 pks= list_pks.toArray(new String[0]);
+				 names = list_names.toArray(new String[0]);
+			}
+		} 
+		if(pks==null||pks.length<=0){
+			getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), e.getKey());
+			getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), "pk_bb"+x+"");
+			return super.beforeEdit(e);
+		}
+			
+		UFBoolean bzb = new UFBoolean("N");
+		for(String name:names){
+			// 判断班别是否为值班 zhanghua
+			if(name.indexOf("值班") != -1){
+				bzb = new UFBoolean("Y");
+				break;
+			}
+		}
+		
+		if(!bzb.booleanValue()){
+			String pk_bb = "";
+			String vbbname = "";
+			for(String pk:pks){
+				pk_bb += ""+pk+",";
+			}
+			pk_bb = pk_bb.substring(0, pk_bb.length()-1);
+			for(String name:names){
+				vbbname += ""+name+",";
+			}
+			vbbname = vbbname.substring(0, vbbname.length()-1);
+			getBillCardPanel().getBillModel().setValueAt(vbbname, e.getRow(), e.getKey());
+			getBillCardPanel().getBillModel().setValueAt(pk_bb, e.getRow(), "pk_bb"+x+"");
+		}else{
+			getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), e.getKey());
+			getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), "pk_bb"+x+"");
+		}
+	}else{
+		getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), e.getKey());
+		getBillCardPanel().getBillModel().setValueAt(null, e.getRow(), "pk_bb"+x+"");
+	}*/
+	
 		return super.beforeEdit(e);
 	}
+
 	@Override
 	protected void initPrivateButton() {
 		// TODO Auto-generated method stub

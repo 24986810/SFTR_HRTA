@@ -447,7 +447,7 @@ public class EventHandler3 extends CardEventHandler {
 		}
 
 
-		for(int i=1;i<=days;i++){
+		for(int i=1;i<=31;i++){
 			
 			int week = begin.getDateAfter(i-1).getWeek();
 			String name = "";
